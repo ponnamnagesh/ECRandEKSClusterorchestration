@@ -21,37 +21,12 @@ resource "aws_ecr_repository" "cvecr" {
   }
 }
 
-locals {
-  cluster_name = "cv-eks-cluster"
-}
+resource "aws_eks_cluster" "cveks" {
+  #count = local.create ? 1 : 0
 
-module "vpc" {
-  source = "git::https://git@github.com/reactiveops/terraform-vpc.git?ref=v5.0.1"
+  name                      = cveksclusternp
+  #role_arn                  = try(aws_iam_role.this[0].arn, var.iam_role_arn)
+  #version                   = var.cluster_version
+  #enabled_cluster_log_types = var.cluster_enabled_log_types
 
-  aws_region = "us-east-1"
-  az_count   = 3
-  aws_azs    = "us-east-1a, us-east-1b, us-east-1c"
-
-  global_tags = {
-    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
-  }
-}
   
-module "eks" {
-  source       = "git::https://github.com/terraform-aws-modules/terraform-aws-eks.git?ref=v12.1.0"
-  cluster_name = local.cluster_name
-  vpc_id       = module.vpc.aws_vpc_id
-  subnets      = module.vpc.aws_subnet_private_prod_ids
-
-  node_groups = {
-    eks_nodes = {
-      desired_capacity = 3
-      max_capacity     = 3
-      min_capaicty     = 3
-
-      instance_type = "t2.small"
-    }
-  }
-
-  manage_aws_auth = false
-}
