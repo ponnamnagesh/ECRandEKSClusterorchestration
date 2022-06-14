@@ -24,7 +24,7 @@ resource "aws_ecr_repository" "cvecr" {
 resource "aws_eks_cluster" "cveks" {
   #count = local.create ? 1 : 0
 
-  name                      = cveksclusternp
+  name                      = "cveksclusternp"
   #role_arn                  = try(aws_iam_role.this[0].arn, var.iam_role_arn)
   #version                   = var.cluster_version
   #enabled_cluster_log_types = var.cluster_enabled_log_types
