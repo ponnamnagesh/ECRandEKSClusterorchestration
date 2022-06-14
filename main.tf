@@ -21,58 +21,52 @@ resource "aws_ecr_repository" "cvecr" {
   }
 }
 
-resource "aws_eks_cluster" "cveks" {
-  #count = local.create ? 1 : 0
-
-  name                      = "cveksclusternp"
-  #role_arn                  = try(aws_iam_role.this[0].arn, var.iam_role_arn)
-  #version                   = var.cluster_version
-  #enabled_cluster_log_types = var.cluster_enabled_log_types
-
-  
+data "aws_eks_cluster" "cluster" {
+  name = module.eks.cluster_id
 }
 
-  vpc_config {
-    security_group_ids      = compact(distinct(concat(var.cluster_additional_security_group_ids, [local.cluster_security_group_id])))
-    subnet_ids              = var.subnet_ids
-    endpoint_private_access = var.cluster_endpoint_private_access
-    endpoint_public_access  = var.cluster_endpoint_public_access
-    public_access_cidrs     = var.cluster_endpoint_public_access_cidrs
+data "aws_eks_cluster_auth" "cluster" {
+  name = module.eks.cluster_id
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
+  token                  = data.aws_eks_cluster_auth.cluster.token
+  load_config_file       = false
+  version                = "~> 1.9"
+}
+
+module "eks" {
+  source          = "terraform-aws-modules/eks/aws"
+  cluster_name    = "my-eks"
+  cluster_version = "1.17"
+  subnets         = ["subnet-06acb22f7edfdd754", "subnet-009974158ec3d4870"]
+  vpc_id          = "vpc-0d8c98ba97abbcb29"
+
+  node_groups = {
+    public = {
+      subnets          = ["subnet-06acb22f7edfdd754"]
+      desired_capacity = 1
+      max_capacity     = 10
+      min_capacity     = 1
+
+      instance_type = "t2.small"
+      k8s_labels = {
+        Environment = "public"
+      }
+    }
+    private = {
+      subnets          = ["subnet-009974158ec3d4870"]
+      desired_capacity = 1
+      max_capacity     = 10
+      min_capacity     = 1
+
+      instance_type = "t2.small"
+      k8s_labels = {
+        Environment = "private"
+      }
+    }
   }
 
-variable "cluster_additional_security_group_ids" {
-  description = "List of additional, externally created security group IDs to attach to the cluster control plane"
-  type        = list(string)
-  default     = []
 }
-
-variable "cluster_security_group_id" {
-  description = "Existing security group ID to be attached to the cluster. Required if `create_cluster_security_group` = `false`"
-  type        = string
-  default     = ""
-}
-
-variable "subnet_ids" {
-  description = "A list of subnet IDs where the EKS cluster (ENIs) will be provisioned along with the nodes/node groups. Node groups can be deployed within a different set of subnet IDs from within the node group configuration"
-  type        = list(string)
-  default     = []
-}
-variable "cluster_endpoint_private_access" {
-  description = "Indicates whether or not the Amazon EKS private API server endpoint is enabled"
-  type        = bool
-  default     = false
-}
-
-variable "cluster_endpoint_public_access" {
-  description = "Indicates whether or not the Amazon EKS public API server endpoint is enabled"
-  type        = bool
-  default     = true
-}
-
-variable "cluster_endpoint_public_access_cidrs" {
-  description = "List of CIDR blocks which can access the Amazon EKS public API server endpoint"
-  type        = list(string)
-  default     = ["0.0.0.0/0"]
-}
-
-
