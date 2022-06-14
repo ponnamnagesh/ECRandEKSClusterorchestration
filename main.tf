@@ -12,7 +12,7 @@ provider "aws" {
   # version = "~> 2.0"
 }
 
-resource "aws_ecr_repository" "cvecrnonprod" {
+resource "aws_ecr_repository" "cvecr" {
   name                 = "ClaimVisionECR"
   image_tag_mutability = "MUTABLE"
 
