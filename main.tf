@@ -30,3 +30,4 @@ resource "aws_eks_cluster" "cveks" {
   #enabled_cluster_log_types = var.cluster_enabled_log_types
 
   
+}
