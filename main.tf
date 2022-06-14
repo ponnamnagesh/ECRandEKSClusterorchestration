@@ -42,10 +42,10 @@ output "endpoint" {
 }
 
 output "kubeconfig-certificate-authority-data" {
-  value = aws_eks_cluster.example.certificate_authority[0].data
+  value = aws_eks_cluster.cveks.certificate_authority[0].data
 }
 
-resource "aws_iam_role" "cveksiam" {
+resource "aws_iam_role" "cveks" {
   name = "eks-cluster-example"
 
   assume_role_policy = <<POLICY
