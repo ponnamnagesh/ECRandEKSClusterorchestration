@@ -32,7 +32,7 @@ resource "aws_eks_cluster" "cveks" {
   
 }
 
-vpc_config {
+  vpc_config {
     security_group_ids      = compact(distinct(concat(var.cluster_additional_security_group_ids, [local.cluster_security_group_id])))
     subnet_ids              = var.subnet_ids
     endpoint_private_access = var.cluster_endpoint_private_access
