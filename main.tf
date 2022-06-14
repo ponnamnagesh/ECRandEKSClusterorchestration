@@ -21,57 +21,37 @@ resource "aws_ecr_repository" "cvecr" {
   }
 }
 
-resource "aws_eks_cluster" "cveks" {
-  name     = "cveksnp"
-  role_arn = aws_iam_role.cveksnp.arn
+locals {
+  cluster_name = "cv-eks-cluster"
+}
 
-  vpc_config {
-    subnet_ids = [aws_subnet.cveks1.id, aws_subnet.cveks2.id]
+module "vpc" {
+  source = "git::https://git@github.com/reactiveops/terraform-vpc.git?ref=v5.0.1"
+
+  aws_region = "us-east-1"
+  az_count   = 3
+  aws_azs    = "us-east-1a, us-east-1b, us-east-1c"
+
+  global_tags = {
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+  }
+}
+  
+module "eks" {
+  source       = "git::https://github.com/terraform-aws-modules/terraform-aws-eks.git?ref=v12.1.0"
+  cluster_name = local.cluster_name
+  vpc_id       = module.vpc.aws_vpc_id
+  subnets      = module.vpc.aws_subnet_private_prod_ids
+
+  node_groups = {
+    eks_nodes = {
+      desired_capacity = 3
+      max_capacity     = 3
+      min_capaicty     = 3
+
+      instance_type = "t2.small"
+    }
   }
 
-  # Ensure that IAM Role permissions are created before and deleted after EKS Cluster handling.
-  # Otherwise, EKS will not be able to properly delete EKS managed EC2 infrastructure such as Security Groups.
-  depends_on = [
-    aws_iam_role_policy_attachment.cveksnp-AmazonEKSClusterPolicy,
-    aws_iam_role_policy_attachment.cveksnp-AmazonEKSVPCResourceController,
-  ]
-}
-
-output "endpoint" {
-  value = aws_eks_cluster.cveks.endpoint
-}
-
-output "kubeconfig-certificate-authority-data" {
-  value = aws_eks_cluster.cveks.certificate_authority[0].data
-}
-
-resource "aws_iam_role" "cveks" {
-  name = "eks-cluster-example"
-
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "eks.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-POLICY
-}
-
-resource "aws_iam_role_policy_attachment" "cveks-AmazonEKSClusterPolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.cveks.name
-}
-
-# Optionally, enable Security Groups for Pods
-# Reference: https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html
-resource "aws_iam_role_policy_attachment" "cveks-AmazonEKSVPCResourceController" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
-  role       = aws_iam_role.cveks.name
+  manage_aws_auth = false
 }
