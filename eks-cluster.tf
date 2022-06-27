@@ -113,6 +113,3 @@ resource "aws_eks_node_group" "worker-node-group" {
   ]
  }
 
-  ]
- }
-
