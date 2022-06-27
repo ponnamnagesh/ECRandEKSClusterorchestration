@@ -37,7 +37,7 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly-EK
 #Once the policies are attached, create the EKS cluster.
 
 resource "aws_eks_cluster" "cvqa" {
- name = "devopsthehardway-cluster"
+ name = "cvdev-cluster"
  role_arn = aws_iam_role.eks-iam-role.arn
 
  vpc_config {
