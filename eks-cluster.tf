@@ -2,7 +2,7 @@
 #Set up the first resource for the IAM role. This ensures that the role has access to EKS
 
 resource "aws_iam_role" "eks-iam-role" {
- name = "cveksqa-eks-iam-role"
+ name = "devopsthehardway-eks-iam-role"
 
  path = "/"
 
@@ -36,8 +36,8 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly-EK
 
 #Once the policies are attached, create the EKS cluster.
 
-resource "aws_eks_cluster" "cveksqa-eks" {
- name = "cveksqa-cluster"
+resource "aws_eks_cluster" "devopsthehardway-eks" {
+ name = "devopsthehardway-cluster"
  role_arn = aws_iam_role.eks-iam-role.arn
 
  vpc_config {
@@ -53,8 +53,8 @@ resource "aws_eks_cluster" "cveksqa-eks" {
 #The process is similar to the IAM role creation for the EKS cluster except
 #this time the policies that you attach will be for the EKS worker node policies.
 
-resource "aws_iam_role" "cvqaworkernodes" {
-  name = "cveks-node-group-qa"
+resource "aws_iam_role" "workernodes" {
+  name = "eks-node-group-example"
  
   assume_role_policy = jsonencode({
    Statement = [{
@@ -93,9 +93,9 @@ resource "aws_iam_role" "cvqaworkernodes" {
 #In production, follow best practices and use at least three worker nodes.
 
 
-resource "aws_eks_node_group" "cvqaworker-node-group" {
-  cluster_name  = aws_eks_cluster.cvqa-eks.name
-  node_group_name = "cvqa-workernodes"
+resource "aws_eks_node_group" "worker-node-group" {
+  cluster_name  = aws_eks_cluster.devopsthehardway-eks.name
+  node_group_name = "devopsthehardway-workernodes"
   node_role_arn  = aws_iam_role.workernodes.arn
   subnet_ids   = [var.subnet_id_1, var.subnet_id_2]
   instance_types = ["t3.xlarge"]
