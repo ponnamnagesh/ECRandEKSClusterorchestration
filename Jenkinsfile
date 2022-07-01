@@ -38,7 +38,7 @@ pipeline {
                     input message: 'Proceed?', ok: 'Yes', submitter: 'admin'
                 }
                 sh ('aws sts get-caller-identity')
-                sh ('aws eks --region us-east-2 update-kubeconfig --name cluster_name')
+                sh ('aws eks --region us-east-2 update-kubeconfig --name cvdev-cluster')
             }
             post {
                 aborted{
