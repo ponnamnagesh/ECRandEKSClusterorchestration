@@ -46,13 +46,13 @@ pipeline {
                 }
             }            
         }
-    }
     post {
         aborted {
             echo "pipeline has been aborted"
         }
 
            }
+    }
         }
     
-}
+
