@@ -39,6 +39,7 @@ pipeline {
                 }
                 sh ('aws sts get-caller-identity')
                 sh ('aws eks --region us-east-2 update-kubeconfig --name cvdev-cluster')
+                sh ('kubectl get pods --kubeconfig ./.kube/config')
             }
             post {
                 aborted{
