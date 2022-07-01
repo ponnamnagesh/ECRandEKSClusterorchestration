@@ -32,5 +32,27 @@ pipeline {
                 //sh ('terraform destroy --auto-approve')
            }
         }
+        stage('Update EKS KubeConfig') {
+            steps {
+                script {
+                    input message: 'Proceed?', ok: 'Yes', submitter: 'admin'
+                }
+                sh ('aws sts get-caller-identity')
+                sh ('aws eks --region us-east-2 update-kubeconfig --name cluster_name')
+            }
+            post {
+                aborted{
+                    echo "stage has been aborted"
+                }
+            }            
+        }
+    }
+    post {
+        aborted {
+            echo "pipeline has been aborted"
+        }
+
+           }
+        }
     }
 }
