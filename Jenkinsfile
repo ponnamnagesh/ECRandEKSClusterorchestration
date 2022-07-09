@@ -1,5 +1,6 @@
 pipeline {
-    agent any
+    //agent any
+    agent { label 'jenkinslave1' }
     
     stages {
         //stage ('s3 - create bucket') {
